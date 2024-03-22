@@ -1,0 +1,161 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.*;
+
+interface Doctor {
+    void displayDetails();
+
+    String getName();
+}
+
+class DoctorImpl implements Doctor {
+    private String name;
+    private String specialization;
+
+    public DoctorImpl(String name, String specialization) {
+        this.name = name;
+        this.specialization = specialization;
+    }
+
+    @Override
+    public void displayDetails() {
+        System.out.println("Doctor Name: " + name);
+        System.out.println("Specialization: " + specialization);
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+}
+
+class Patient {
+    private String name;
+    private int age;
+
+    public Patient(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+}
+
+class Hospital {
+    ArrayList<Doctor> doctors;
+    HashMap<Doctor, LinkedList<Patient>> appointments;
+
+    public Hospital() {
+        doctors = new ArrayList<>();
+        appointments = new HashMap<>();
+    }
+
+    public void addDoctor(Doctor doctor) {
+        doctors.add(doctor);
+        appointments.put(doctor, new LinkedList<>());
+    }
+
+    public void bookAppointment(Doctor doctor, Patient patient) {
+        LinkedList<Patient> patientList = appointments.get(doctor);
+        if (patientList != null) {
+            patientList.add(patient);
+        } else {
+            System.out.println("Doctor not found.");
+        }
+    }
+
+    public void displayAppointments(Doctor doctor) {
+        LinkedList<Patient> patientList = appointments.get(doctor);
+        if (patientList != null) {
+            System.out.println("Appointments for Doctor: ");
+            for (Patient patient : patientList) {
+                System.out.println("Patient: " + patient.getName() + ", Age: " + patient.getAge());
+            }
+        } else {
+            System.out.println("No appointments for this doctor.");
+        }
+    }
+}
+
+public class HospitalManagementApplet extends JApplet {
+    private Hospital hospital;
+
+    public void init() {
+        hospital = new Hospital();
+        createGUI();
+    }
+
+    public void createGUI() {
+        setLayout(new GridLayout(4, 1));
+
+        JPanel titlePanel = new JPanel();
+        JLabel titleLabel = new JLabel("Hospital Management System");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        titlePanel.add(titleLabel);
+        add(titlePanel);
+
+        JPanel addDoctorPanel = new JPanel();
+        JButton addDoctorButton = new JButton("Add Doctor");
+        addDoctorButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String name = JOptionPane.showInputDialog("Enter Doctor's Name:");
+                String specialization = JOptionPane.showInputDialog("Enter Doctor's Specialization:");
+                Doctor doctor = new DoctorImpl(name, specialization);
+                hospital.addDoctor(doctor);
+                JOptionPane.showMessageDialog(null, "Doctor Added Successfully!");
+            }
+        });
+        addDoctorPanel.add(addDoctorButton);
+        add(addDoctorPanel);
+
+        JPanel bookAppointmentPanel = new JPanel();
+        JButton bookAppointmentButton = new JButton("Book Appointment");
+        bookAppointmentButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Object[] doctorOptions = hospital.doctors.toArray();
+                Doctor doctor = (Doctor) JOptionPane.showInputDialog(null, "Select Doctor:", "Book Appointment",
+                        JOptionPane.QUESTION_MESSAGE, null, doctorOptions, doctorOptions[0]);
+                if (doctor != null) {
+                    String name = JOptionPane.showInputDialog("Enter Patient's Name:");
+                    int age = Integer.parseInt(JOptionPane.showInputDialog("Enter Patient's Age:"));
+                    Patient patient = new Patient(name, age);
+                    hospital.bookAppointment(doctor, patient);
+                    JOptionPane.showMessageDialog(null, "Appointment Booked Successfully!");
+                }
+            }
+        });
+        bookAppointmentPanel.add(bookAppointmentButton);
+        add(bookAppointmentPanel);
+
+        JPanel displayAppointmentsPanel = new JPanel();
+        JButton displayAppointmentsButton = new JButton("Display Appointments");
+        displayAppointmentsButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Object[] doctorOptions = hospital.doctors.toArray();
+                Doctor doctor = (Doctor) JOptionPane.showInputDialog(null, "Select Doctor:", "Display Appointments",
+                        JOptionPane.QUESTION_MESSAGE, null, doctorOptions, doctorOptions[0]);
+                if (doctor != null) {
+                    LinkedList<Patient> appointments = hospital.appointments.get(doctor);
+                    StringBuilder appointmentList = new StringBuilder();
+                    for (Patient patient : appointments) {
+                        appointmentList.append("Patient: ").append(patient.getName()).append(", Age: ").append(patient.getAge()).append("\n");
+                    }
+                    JOptionPane.showMessageDialog(null, "Appointments for Doctor " + doctor.getName() + ":\n" + appointmentList.toString());
+                }
+            }
+        });
+        displayAppointmentsPanel.add(displayAppointmentsButton);
+        add(displayAppointmentsPanel);
+    }
+}
